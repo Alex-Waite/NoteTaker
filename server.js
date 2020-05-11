@@ -4,9 +4,14 @@ const app = express();
 const fs = require("fs")
 const path = require("path");
 
+// obj destructuring
+const {
+    v4: uuid4
+} = require('uuid');
+
 // Standard express server stuff
 
-const PORT = process.env.PORT || 3000
+const PORT = process.env.PORT || 3050
 app.use(express.static('public'))
 app.use(express.urlencoded({
     extended: true
@@ -18,16 +23,18 @@ app.use(express.json());
 
 app.post('/api/notes', function (req, res) {
     let notesContent = req.body;
-    let notesArray = [];
-    notesArray.push(notesContent);
-    let note = JSON.stringify(notesArray);
-    fs.writeFile(path.join(__dirname, "./db/db.json"), note, 'utf8', function (error) {
+    let note = notesContent;
+    note.id = uuid4()
+    let notesArray = fs.readFileSync(path.join(__dirname, "./db/db.json"));
+    notesArray = JSON.parse(notesArray)
+    notesArray.push(note)
+    notesArray = JSON.stringify(notesArray)
+    fs.writeFile(path.join(__dirname, "./db/db.json"), notesArray, 'utf8', function (error) {
         if (error) {
             console.log("Mistake (json wanst written to file??)");;
-        } else {
-            res.send(note);
-            console.log("Success!");
         }
+        res.send(note);
+        console.log("Success!");
     });
 
 });
@@ -35,7 +42,7 @@ app.post('/api/notes', function (req, res) {
 // GETS the notes
 
 app.get('/api/notes', function (req, res) {
-    fs.readFile(path.join(__dirname, "./db/db.json"), function read(error, data) {
+    fs.readFile(path.join(__dirname, "./db/db.json"), function (error, data) {
         if (error) {
             console.log("Mistake somewhere here (unread data???)");
         } else {
@@ -47,6 +54,14 @@ app.get('/api/notes', function (req, res) {
     });
 
 });
+
+// DELETES the notes
+
+app.delete("/api/notes/:id", function (req, res) {
+    let idToBeDel = req.params.id
+    console.log(req.params.id)
+    path.join(__dirname, "./db/db.json")
+})
 
 // Displays the html
 
