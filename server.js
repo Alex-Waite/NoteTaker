@@ -60,9 +60,30 @@ app.get('/api/notes', function (req, res) {
 app.delete("/api/notes/:id", function (req, res) {
     let idToBeDel = req.params.id
     console.log(req.params.id)
-    path.join(__dirname, "./db/db.json")
+    fs.readFile(path.join(__dirname, "./db/db.json"), function (error, data) {
+        if (error) {
+            console.log("Mistake somewhere here (unread data???)");
+        } else {
+            console.log(data)
+            let jsonParseData = JSON.parse(data);
+            let newNotes = jsonParseData.filter(function (note) {
+                if (note.id === idToBeDel) {
+                    return false
+                } else {
+                    return true
+                }
+            })
+            newNotesString = JSON.stringify(newNotes)
+            fs.writeFile(path.join(__dirname, "./db/db.json"), newNotesString, 'utf8', function (error) {
+                if (error) {
+                    console.log("Mistake (json wanst written to file??)");
+                };
+                console.log("Successfuly deleted!");
+            })
+            res.send(jsonParseData);
+        }
+    })
 })
-
 // Displays the html
 
 app.get("/", function (req, res) {
